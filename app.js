@@ -42,7 +42,7 @@ app.get('/movies/:id', (req, res) => {
 app.post('/movies', (req, res) => {
   // Implement logic to create a new movie in the database
   const movieData = req.body;
-  res.status(201).json({ message: 'Movie created successfully', movie: movieData });
+  res.status(201).json({ message: 'création avec succès' });
 });
 
 // Update a movie by ID
