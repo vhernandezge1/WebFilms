@@ -2,19 +2,19 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
-
+ 
 const app = express();
-const port = 3000;
-
+const port = 3306;
+ 
 app.use(bodyParser.json());
-
+ 
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'password',
-  database: 'movies_db',
+  host: '3306',
+  user: 'valentin',
+  password: '1234',
+  database: 'movies',
 });
-
+ 
 db.connect(err => {
   if (err) {
     console.error('Database connection failed:', err);
@@ -22,44 +22,76 @@ db.connect(err => {
     console.log('Connected to the database');
   }
 });
-
-// Routes
-
-// Get all movies
-app.get('/movies', (req, res) => {
-  // Implement logic to retrieve all movies from the database
-  res.json({ message: 'Get all movies' });
-});
-
+ 
+ 
+ 
+ 
 // Get a movie by ID
-app.get('/movies/:id', (req, res) => {
-  // Implement logic to retrieve a movie by ID from the database
-  const movieId = req.params.id;
-  res.json({ message: `Get movie with ID ${movieId}` });
+app.get('/movies', async (req, res) => {
+  try {
+    const movies = await Film.findAll();
+    res.status(200).json(movies);
+  } catch (error) {
+    console.error(error);
+    res.status(404).json({ error: 'ressource absente' });
+  }
 });
-
+ 
+ 
 // Create a new movie
-app.post('/movies', (req, res) => {
-  // Implement logic to create a new movie in the database
-  const movieData = req.body;
-  res.status(201).json({ message: 'création avec succès' });
+app.post('/films', async (req, res) => {
+  const { id, nom, description, dateParution, note } = req.body;
+ 
+  try {
+    const newMovie = await Film.create({ nom, description, dateParution, note });
+    res.status(201).json(newMovie);
+  } catch (error) {
+    console.error(error);
+    res.status(422).json({ error: 'Validation impossible' });
+  }
 });
-
+ 
+ 
 // Update a movie by ID
-app.put('/movies/:id', (req, res) => {
-  // Implement logic to update a movie by ID in the database
-  const movieId = req.params.id;
-  const updatedData = req.body;
-  res.json({ message: `Update movie with ID ${movieId}`, updatedData });
+app.put('/films/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nom, description, dateParution, note } = req.body;
+ 
+  try {
+    const film = await Film.findByPk(id);
+ 
+    if (film) {
+      await film.update({ nom, description, dateParution, note });
+      res.status(200).json({ message: 'Film modifié avec succès.' });
+    } else {
+      res.status(404).json({ error: 'ressource absente' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(422).json({ error: 'validation impossible' });
+  }
 });
-
-// Delete a movie by ID
-app.delete('/movies/:id', (req, res) => {
-  // Implement logic to delete a movie by ID from the database
-  const movieId = req.params.id;
-  res.json({ message: `Delete movie with ID ${movieId}` });
+ 
+ 
+app.delete('/films/:id', async (req, res) => {
+  const { id } = req.params;
+ 
+  try {
+    const film = await Film.findByPk(id);
+ 
+    if (film) {
+      await film.destroy();
+      res.status(201).json({ message: 'Film supprimé avec succès.' });
+    } else {
+      res.status(404).json({ error: 'ressource absente' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(422).json({ error: 'validation impossible' });
+  }
 });
-
+ 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+ 
