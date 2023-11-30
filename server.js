@@ -4,12 +4,12 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql');
  
 const app = express();
-const port = 3306;
+const port = 8080;
  
 app.use(bodyParser.json());
  
 const db = mysql.createConnection({
-  host: '3306',
+  host: 'localhost',
   user: 'valentin',
   password: '1234',
   database: 'movies',
