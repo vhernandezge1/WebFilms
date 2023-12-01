@@ -6,19 +6,19 @@ const { Film } = require('./server');
 app.use(bodyParser.json());
  
 // Get a movie by ID
-app.get('/movies', async (req, res) => {
+app.get('/server', async (req, res) => {
     try {
       const movies = await Film.findAll();
       res.status(200).json(movies);
     } catch (error) {
       console.error(error);
-      res.status(404).json({ error: 'ressource absente' });
+      res.status(404).json({ error: 'Ressource absente' });
     }
   });
    
    
   // Create a new movie
-  app.post('/films', async (req, res) => {
+  app.post('/server', async (req, res) => {
     const { id, nom, description, dateParution, note } = req.body;
    
     try {
@@ -32,7 +32,7 @@ app.get('/movies', async (req, res) => {
    
    
   // Update a movie by ID
-  app.put('/films/:id', async (req, res) => {
+  app.put('/server/:id', async (req, res) => {
     const { id } = req.params;
     const { nom, description, dateParution, note } = req.body;
    
@@ -43,16 +43,16 @@ app.get('/movies', async (req, res) => {
         await film.update({ nom, description, dateParution, note });
         res.status(200).json({ message: 'Film modifié avec succès.' });
       } else {
-        res.status(404).json({ error: 'ressource absente' });
+        res.status(404).json({ error: 'Ressource absente' });
       }
     } catch (error) {
       console.error(error);
-      res.status(422).json({ error: 'validation impossible' });
+      res.status(422).json({ error: 'Validation impossible' });
     }
   });
    
    
-  app.delete('/films/:id', async (req, res) => {
+  app.delete('/server/:id', async (req, res) => {
     const { id } = req.params;
    
     try {
@@ -60,12 +60,13 @@ app.get('/movies', async (req, res) => {
    
       if (film) {
         await film.destroy();
-        res.status(201).json({ message: 'Film supprimé avec succès.' });
+        res.status(201).json({ message: 'Film créé avec succès.' });
       } else {
-        res.status(404).json({ error: 'ressource absente' });
+        res.status(404).json({ error: 'Ressource absente' });
       }
     } catch (error) {
       console.error(error);
-      res.status(422).json({ error: 'validation impossible' });
+      res.status(422).json({ error: 'Validation impossible' });
     }
   });
+   
