@@ -14,7 +14,7 @@ const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'films',
+  database: 'dbmovies',
   port: '3306'
 });
  
@@ -29,7 +29,7 @@ connection.connect(err => {
 app.use(bodyParser.json());
  
 // Récupération des films (listing)
-app.get('/films', (req, res) => {
+app.get('/movies', (req, res) => {
   connection.query('SELECT * FROM movies', (err, results) => {
     if (err) {
       console.error('Erreur lors de la récupération des films :', err);
@@ -41,7 +41,7 @@ app.get('/films', (req, res) => {
 });
  
 // Récupération d'un film par son ID
-app.get('/films/id/:id', (req, res) => {
+app.get('/movies/id/:id', (req, res) => {
   const id = parseInt(req.params.id);
  
   connection.query('SELECT * FROM movies WHERE id = ?', [id], (err, results) => {
@@ -57,12 +57,12 @@ app.get('/films/id/:id', (req, res) => {
 });
  
 // Modification d'un film par son ID
-app.put('/films/:id', (req, res) => {
+app.put('/movies/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const { title, description, rating } = req.body;
  
   connection.query(
-    'UPDATE films SET nom = ?, id = ?, description = ? WHERE note = ?',
+    'UPDATE movies SET nom = ?, id = ?, description = ? WHERE note = ?',
     [title, description, rating, id],
     err => {
       if (err) {
@@ -76,7 +76,7 @@ app.put('/films/:id', (req, res) => {
 });
  
 // Création d'un nouveau film
-app.post('/films', (req, res) => {
+app.post('/movies', (req, res) => {
   const { id, nom, sortie, description, note } = req.body;
  
   connection.query(
@@ -95,7 +95,7 @@ app.post('/films', (req, res) => {
 });
  
 // Suppression d'un film par son nom
-app.delete('/films/:nom', (req, res) => {
+app.delete('/movies/:nom', (req, res) => {
   const id = parseInt(req.params.id);
  
   connection.query('DELETE FROM movies WHERE nom = ?', [nom], err => {
