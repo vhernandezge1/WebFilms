@@ -116,7 +116,7 @@ app.listen(PORT, () => {
 });
 
 // Recherche de films par description (remplacer description par titre)
-const rechercheDescription = 'aventure';
+const rechercheDescription = 'action';
 connection.query('SELECT * FROM movies WHERE description = ?', [rechercheDescription], (err, results, fields) => {
   if (err) {
     console.error('Erreur lors de l\'exécution de la requête :', err);
