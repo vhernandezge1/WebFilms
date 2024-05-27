@@ -1,0 +1,106 @@
+<!-- public/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page de Connexion</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    input, button {
+      margin-bottom: 10px;
+    }
+
+    /* Nouveau style pour le conteneur des boutons */
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <form id="authForm">
+    <label for="username">Nom d'utilisateur:</label>
+    <input type="text" id="username" name="username" required>
+
+    <label for="password">Mot de passe:</label>
+    <input type="password" id="password" name="password" required>
+
+    <!-- Conteneur pour les boutons -->
+    <div class="button-container">
+      <button type="button" onclick="login()">Se connecter</button>
+      <button type="button" onclick="register()">S'inscrire</button>
+    </div>
+  </form>
+
+  <script>
+    async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      // Gérer la réponse du serveur, peut-être rediriger l'utilisateur si l'authentification est réussie.
+      if (response.ok) {
+        // Redirection vers une nouvelle page après une connexion réussie
+        window.location.href = '/dashboard';  // Remplacez '/dashboard' par l'URL souhaitée
+      } else {
+        // Gérer les erreurs d'authentification ici
+        alert('Échec de l\'authentification');
+      }
+    }
+
+    async function register() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      const response = await fetch('http://localhost:3000/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      // Gérer la réponse du serveur après l'inscription
+      if (response.ok) {
+        // Redirection vers une nouvelle page après une inscription réussie
+        window.location.href = '/dashboard';  // Remplacez '/dashboard' par l'URL souhaitée
+      } else {
+        // Gérer les erreurs d'inscription ici
+        alert('Échec de l\'inscription');
+      }
+    }
+  </script>
+
+</body>
+</html>
