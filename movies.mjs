@@ -1,23 +1,28 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import mysql from 'mysql2';
 import inquirer from 'inquirer';
 import fs from 'fs';
- 
- 
- 
- 
+import bodyParser from 'body-parser';
+
+
+
+
 const app = express();
 const PORT = 3000;
- 
+
+app.use(express.json());
+
+
+
+// Connexion à la base de données
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'dbmovies',
+  database: 'films',
   port: '3306'
 });
- 
+
 connection.connect(err => {
   if (err) {
     console.error('Erreur de connexion à la base de données :', err);
@@ -25,9 +30,7 @@ connection.connect(err => {
     console.log('Connexion à la base de données réussie.');
   }
 });
- 
-app.use(bodyParser.json());
- 
+
 // Récupération des films (listing)
 app.get('/movies', (req, res) => {
   connection.query('SELECT * FROM movies', (err, results) => {
@@ -39,11 +42,11 @@ app.get('/movies', (req, res) => {
     }
   });
 });
- 
+
 // Récupération d'un film par son ID
-app.get('/movies/id/:id', (req, res) => {
+app.get('/movies/:id', (req, res) => {
   const id = parseInt(req.params.id);
- 
+
   connection.query('SELECT * FROM movies WHERE id = ?', [id], (err, results) => {
     if (err) {
       console.error('Erreur lors de la récupération du film :', err);
@@ -55,15 +58,14 @@ app.get('/movies/id/:id', (req, res) => {
     }
   });
 });
- 
+
 // Modification d'un film par son ID
 app.put('/movies/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const { title, description, rating } = req.body;
- 
+  const { id, nom, sortie, description, note } = req.body;
+
   connection.query(
-    'UPDATE movies SET nom = ?, id = ?, description = ? WHERE note = ?',
-    [title, description, rating, id],
+    'UPDATE movies SET nom = ?, sortie = ?, description = ?, note = ? WHERE id = ?',
+    [nom, sortie, description, note, id],
     err => {
       if (err) {
         console.error('Erreur lors de la modification du film :', err);
@@ -74,31 +76,31 @@ app.put('/movies/:id', (req, res) => {
     }
   );
 });
- 
-// Création d'un nouveau film
+
 app.post('/movies', (req, res) => {
-  const { id, nom, sortie, description, note } = req.body;
- 
+  const { nom, sortie, description, note } = req.body;
+  
   connection.query(
-    'INSERT INTO movies (id, nom, sortie, description, note) VALUES (?, ?, ?)',
-    [id, nom, sortie, description, note],
+    'INSERT INTO movies (nom, sortie, description, note) VALUES (?,?,?,?)',
+    [nom, sortie, description, note],
     (err, results) => {
       if (err) {
         console.error('Erreur lors de la création du film :', err);
-        res.status(500).json({ error: 'Erreur interne du serveur' });
+        return res.status(500).json({ error: 'Erreur interne du serveur', details: err.message });
       } else {
-        const newFilmNom = results.insertNom;
-        res.status(201).json({ nom: newFilmNom, id, description, note });
+        const newFilmNom = nom;
+        return res.status(201).json({ nom: newFilmNom, sortie, description, note });
       }
     }
   );
 });
- 
-// Suppression d'un film par son nom
-app.delete('/movies/:nom', (req, res) => {
-  const id = parseInt(req.params.id);
- 
-  connection.query('DELETE FROM movies WHERE nom = ?', [nom], err => {
+
+
+// Suppression d'un film par son id
+app.delete('/movies/:id', (req, res) => {
+  const id = req.params.id;
+
+  connection.query('DELETE FROM movies WHERE id = ?', [id], err => {
     if (err) {
       console.error('Erreur lors de la suppression du film :', err);
       res.status(500).json({ error: 'Erreur interne du serveur' });
@@ -107,36 +109,32 @@ app.delete('/movies/:nom', (req, res) => {
     }
   });
 });
- 
+
+// Écoute du serveur sur le port défini
 app.listen(PORT, () => {
   console.log(`Serveur en écoute sur le port ${PORT}`);
 });
- 
- 
- 
- 
- 
- 
-connection.query('SELECT * FROM movies WHERE description = "aventure"', (err, results, fields) => {
+
+// Recherche de films par description (remplacer description par titre)
+const rechercheDescription = 'action';
+connection.query('SELECT * FROM movies WHERE description = ?', [rechercheDescription], (err, results, fields) => {
   if (err) {
     console.error('Erreur lors de l\'exécution de la requête :', err);
-    connection.end(); // Fermeture de la connexion en cas d'erreur
+    connection.end();
     return;
   }
- 
-  // Traitement des résultats
+
   console.log('Résultats de la requête :', results);
- 
-  // Fermeture de la connexion
-  connection.end((err) => {
+
+  connection.end(err => {
     if (err) {
       console.error('Erreur lors de la fermeture de la connexion :', err);
       return;
     }
     console.log('Connexion à la base de données fermée.');
- 
+
     const jsonData = JSON.stringify(results, null, 2);
-    fs.writeFile('resultats.json', jsonData, 'utf8', (err) => {
+    fs.writeFile('resultats.json', jsonData, 'utf8', err => {
       if (err) {
         console.error('Erreur lors de l\'écriture du fichier JSON :', err);
         return;
@@ -144,53 +142,54 @@ connection.query('SELECT * FROM movies WHERE description = "aventure"', (err, re
       console.log('Résultats écrits dans le fichier resultats.json.');
     });
   });
- 
-  async function paginerResultats(resultats, pageActuelle, résultatsParPage) {
-    const débutIndex = (pageActuelle - 1) * résultatsParPage;
-    const finIndex = débutIndex + résultatsParPage;
-    const pageCourante = resultats.slice(débutIndex, finIndex);
- 
-    console.clear();
- 
-    console.log(`Page ${pageActuelle} / ${Math.ceil(resultats.length / résultatsParPage)}\n`);
- 
-    // Afficher les résultats de la page courante
-    pageCourante.forEach((résultat, index) => {
-      console.log(`${débutIndex + index + 1}. ${résultat}`);
-    });
- 
-    console.log('\n');
-  }
- 
-  // Fonction principale pour simuler une recherche dans la base de données
-  async function rechercheDansBDD() {
-    const resultats = ['Avatar ', 'Avengers', 'The Mask', 'Viking'];
-    const résultatsParPage = 3;
-    let pageActuelle = 1;
- 
-    while (true) {
-      paginerResultats(resultats, pageActuelle, résultatsParPage);
- 
-      const réponse = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'action',
-          message: 'Que souhaitez-vous faire ?',
-          choices: ['Film suivant', 'Film précédent', 'Quitter']
-        }
-      ]);
- 
-      if (réponse.action === 'Film suivant' && pageActuelle < Math.ceil(resultats.length / résultatsParPage)) {
-        pageActuelle++;
-      } else if (réponse.action === 'Film précédent' && pageActuelle > 1) {
-        pageActuelle--;
-      } else if (réponse.action === 'Quitter') {
-        break;
-      }
-    }
- 
-    console.log('Fin');
-  }
- 
-  rechercheDansBDD();
 });
+
+// Fonction asynchrone pour paginer les résultats
+async function paginerResultats(resultats, pageActuelle, résultatsParPage) {
+  const débutIndex = (pageActuelle - 1) * résultatsParPage;
+  const finIndex = débutIndex + résultatsParPage;
+  const pageCourante = resultats.slice(débutIndex, finIndex);
+
+  console.clear();
+
+  console.log(`Page ${pageActuelle} / ${Math.ceil(resultats.length / résultatsParPage)}\n`);
+
+  pageCourante.forEach((résultat, index) => {
+    console.log(`${débutIndex + index + 1}. ${résultat}`);
+  });
+
+  console.log('\n');
+}
+
+// Fonction principale pour simuler une recherche dans la base de données
+async function rechercheDansBDD() {
+  const resultats = ['Avatar', 'Avengers', 'The Mask', 'Viking'];
+  const résultatsParPage = 3;
+  let pageActuelle = 1;
+
+  while (true) {
+    paginerResultats(resultats, pageActuelle, résultatsParPage);
+
+    const réponse = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'action',
+        message: 'Que souhaitez-vous faire ?',
+        choices: ['Film suivant', 'Film précédent', 'Quitter']
+      }
+    ]);
+
+    if (réponse.action === 'Film suivant' && pageActuelle < Math.ceil(resultats.length / résultatsParPage)) {
+      pageActuelle++;
+    } else if (réponse.action === 'Film précédent' && pageActuelle > 1) {
+      pageActuelle--;
+    } else if (réponse.action === 'Quitter') {
+      break;
+    }
+  }
+
+  console.log('Fin');
+}
+
+// Exécution de la fonction de recherche
+rechercheDansBDD();
