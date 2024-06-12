@@ -71,7 +71,7 @@ app.get('/protected', authenticateToken, (req, res) => {
 // Gestion de la route GET /login
 app.get('/login', (req, res) => {
   // Chemin relatif pour servir le fichier index.html à partir du dossier /login
-  const indexPath = path.join(__dirname, '..', 'Webfilms', 'index.html');
+  const indexPath = path.join(__dirname, 'public', 'index.html');
   res.sendFile(indexPath);
 });
 

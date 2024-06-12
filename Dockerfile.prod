@@ -1,22 +1,41 @@
-# Utiliser une image de base appropriée (par exemple, node pour un projet Node.js)
-FROM node:14
+# Étape 1 : Construction
+FROM node:14 AS builder
 
 # Définir le répertoire de travail dans le conteneur
-WORKDIR C:\Users\valen\Desktop\Projets\WebFilms\WebFilms
+WORKDIR /app
 
-# Copier le fichier package.json et package-lock.json
+# Copier package.json et package-lock.json pour installer les dépendances
 COPY package*.json ./
 
-# Installer les dépendances de production
-RUN npm install --only=production
+# Installer toutes les dépendances, y compris celles de développement
+RUN npm install
 
-# Copier le reste des fichiers du projet
+# Copier le reste des fichiers de l'application
 COPY . .
 
-# Construire le projet (si nécessaire)
+# Construire l'application pour la production
 RUN npm run build
 
-# Exposer le port utilisé par l'application
+# Étape 2 : Production
+FROM node:14-alpine
+
+# Définir le répertoire de travail dans le conteneur
+WORKDIR /app
+
+# Copier uniquement les dépendances de production
+COPY package*.json ./
+
+# Installer uniquement les dépendances de production
+RUN npm install --only=production
+
+# Copier les fichiers de construction de l'étape précédente
+COPY --from=builder /app/build /app/build
+
+# Copier les fichiers sources nécessaires pour exécuter l'application
+COPY --from=builder /app/server.js /app/server.js
+COPY --from=builder /app/auth.js /app/auth.js
+
+# Exposer le port que l'application utilise
 EXPOSE 3000
 
 # Démarrer l'application

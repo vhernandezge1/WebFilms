@@ -1,20 +1,20 @@
-# Utiliser une image de base appropriée (par exemple, node pour un projet Node.js)
+# Dockerfile pour le développement
 FROM node:14
 
 # Définir le répertoire de travail dans le conteneur
-WORKDIR C:\Users\valen\Desktop\Projets\WebFilms\WebFilms
+WORKDIR /app
 
-# Copier le fichier package.json et package-lock.json
+# Copier package.json et package-lock.json
 COPY package*.json ./
 
-# Installer les dépendances du projet
+# Installer toutes les dépendances
 RUN npm install
 
-# Copier le reste des fichiers du projet
+# Copier le reste des fichiers de l'application
 COPY . .
 
-# Exposer le port utilisé par l'application
+# Exposer le port que l'application utilise
 EXPOSE 3000
 
-# Démarrer l'application
+# Commande pour démarrer l'application en mode développement
 CMD ["npm", "run", "dev"]

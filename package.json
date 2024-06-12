@@ -1,8 +1,22 @@
 {
+  "name": "webfilms",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
   "dependencies": {
-    "express": "^4.18.2",
-    "mysql": "^2.18.1",
-    "mysql2": "^3.6.5",
-    "node.js": "^0.0.1-security"
+    "express": "^4.17.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "^4.0.3",
+    "jsonwebtoken": "^8.5.1",
+    "body-parser": "^1.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
   }
 }
