@@ -1,8 +1,8 @@
 const express = require('express');
-const path = require('path');
-const app = express();
-const PORT = process.env.PORT || 3000;
 const promClient = require('prom-client');
+const path = require('path');
+
+const app = express();
 
 // Compteur pour le nombre de requêtes HTTP
 const httpRequestCounter = new promClient.Counter({
@@ -25,21 +25,26 @@ const httpRequestDurationHistogram = new promClient.Histogram({
   labelNames: ['method', 'status_code']
 });
 
+// Exposer les métriques pour Prometheus
+app.get('/metrics', (req, res) => {
+  res.set('Content-Type', promClient.register.contentType);
+  res.end(promClient.register.metrics());
+});
 
-
-// Importer les routes d'authentification
+// Importer et utiliser les routes d'authentification
 const authRoutes = require('./auth');
-
-// Utiliser les routes d'authentification
 app.use(authRoutes);
 
 // Servir les fichiers statiques depuis le dossier 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Renvoyer le fichier index.html pour toutes les autres routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Démarrez votre serveur Express sur un port spécifique
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Serveur en cours d'exécution sur le port ${PORT}`);
+  console.log(`Serveur en cours d'exécution sur le port ${PORT}`);
 });
