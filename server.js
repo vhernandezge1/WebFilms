@@ -5,27 +5,6 @@ const morgan = require('morgan');
 
 const app = express();
 
-// Compteur pour le nombre de requêtes HTTP
-const httpRequestCounter = new promClient.Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'status_code']
-});
-
-// Jauge pour mesurer la taille des réponses HTTP
-const httpResponseSize = new promClient.Gauge({
-  name: 'http_response_size_bytes',
-  help: 'Size of HTTP responses in bytes',
-  labelNames: ['method', 'status_code']
-});
-
-// Histogramme pour mesurer la durée des requêtes HTTP
-const httpRequestDurationHistogram = new promClient.Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'status_code']
-});
-
 // Middleware pour mesurer la durée des requêtes HTTP
 app.use((req, res, next) => {
   const start = process.hrtime();
@@ -59,8 +38,29 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware pour journaliser les requêtes HTTP
+// Middleware pour journaliser les requêtes HTTP avec Morgan
 app.use(morgan('combined'));
+
+// Compteur pour le nombre de requêtes HTTP
+const httpRequestCounter = new promClient.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'status_code']
+});
+
+// Jauge pour mesurer la taille des réponses HTTP
+const httpResponseSize = new promClient.Gauge({
+  name: 'http_response_size_bytes',
+  help: 'Size of HTTP responses in bytes',
+  labelNames: ['method', 'status_code']
+});
+
+// Histogramme pour mesurer la durée des requêtes HTTP
+const httpRequestDurationHistogram = new promClient.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'status_code']
+});
 
 // Exposer les métriques pour Prometheus
 app.get('/metrics', async (req, res) => {
