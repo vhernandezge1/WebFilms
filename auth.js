@@ -2,21 +2,22 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const path = require('path');
-const app = express();
+
+const router = express.Router();
 const secretKey = 'yourSecretKey'; // Remplacez ceci par une clé secrète sécurisée
 
-app.use(bodyParser.json());
+router.use(bodyParser.json());
 
 // Servez les fichiers statiques depuis le dossier 'public'
-app.use(express.static('public'));
+router.use(express.static('public'));
 
 // Gestion de la route GET à la racine pour rediriger vers la page de connexion
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
   res.redirect('/login');
 });
 
 // Route pour l'authentification (méthode POST)
-app.post('/login', (req, res) => {
+router.post('/login', (req, res) => {
   const { username, password } = req.body;
 
   // Vérification des informations d'authentification (exemple simple)
@@ -30,7 +31,7 @@ app.post('/login', (req, res) => {
 });
 
 // Route pour l'inscription (méthode POST)
-app.post('/register', (req, res) => {
+router.post('/register', (req, res) => {
   const { username, password } = req.body;
 
   // Vérification des informations d'inscription (exemple simple)
@@ -64,19 +65,15 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Exemple de route protégée (méthode GET)
-app.get('/protected', authenticateToken, (req, res) => {
+router.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'Route protégée', user: req.user });
 });
 
 // Gestion de la route GET /login
-app.get('/login', (req, res) => {
+router.get('/login', (req, res) => {
   // Chemin relatif pour servir le fichier index.html à partir du dossier /login
   const indexPath = path.join(__dirname, 'public', 'index.html');
   res.sendFile(indexPath);
 });
 
-const PORT = 3000;
-
-app.listen(PORT, () => {
-  console.log(`Serveur en cours d'exécution sur le port ${PORT}`);
-});
+module.exports = router;

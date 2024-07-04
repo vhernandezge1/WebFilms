@@ -1,6 +1,7 @@
 const express = require('express');
 const promClient = require('prom-client');
 const path = require('path');
+const morgan = require('morgan');
 
 const app = express();
 
@@ -25,10 +26,46 @@ const httpRequestDurationHistogram = new promClient.Histogram({
   labelNames: ['method', 'status_code']
 });
 
+// Middleware pour mesurer la durée des requêtes HTTP
+app.use((req, res, next) => {
+  const start = process.hrtime();
+
+  let originalWrite = res.write;
+  let originalEnd = res.end;
+  let responseSize = 0;
+
+  res.write = function (chunk, encoding, callback) {
+    if (chunk) {
+      responseSize += chunk.length;
+    }
+    return originalWrite.apply(res, [chunk, encoding, callback]);
+  };
+
+  res.end = function (chunk, encoding, callback) {
+    if (chunk) {
+      responseSize += chunk.length;
+    }
+
+    const duration = process.hrtime(start);
+    const durationInSeconds = duration[0] + duration[1] / 1e9;
+
+    httpRequestCounter.inc({ method: req.method, status_code: res.statusCode });
+    httpResponseSize.set({ method: req.method, status_code: res.statusCode }, responseSize);
+    httpRequestDurationHistogram.observe({ method: req.method, status_code: res.statusCode }, durationInSeconds);
+
+    return originalEnd.apply(res, [chunk, encoding, callback]);
+  };
+
+  next();
+});
+
+// Middleware pour journaliser les requêtes HTTP
+app.use(morgan('combined'));
+
 // Exposer les métriques pour Prometheus
-app.get('/metrics', (req, res) => {
+app.get('/metrics', async (req, res) => {
   res.set('Content-Type', promClient.register.contentType);
-  res.end(promClient.register.metrics());
+  res.end(await promClient.register.metrics());
 });
 
 // Importer et utiliser les routes d'authentification
